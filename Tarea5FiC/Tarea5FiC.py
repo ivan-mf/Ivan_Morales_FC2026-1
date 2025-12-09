@@ -180,6 +180,21 @@ import numpy as np
 
 
 def euler_implicito_R4(f, Jf, y0, t0, h, N):
+    """
+    Resuelve un sistema de ecuaciones diferenciales en R4 usando Euler implícito.
+
+    Args:
+        f (callable): función f(y) → derivada. Clase: callable.
+        Jf (callable): Jacobiano Df(y). Clase: callable.
+        y0 (np.ndarray): condiciones iniciales (longitud 4). Clase: numpy.ndarray.
+        t0 (float): tiempo inicial. Clase: float.
+        h (float): paso temporal. Clase: float.
+        N (int): número de pasos. Clase: int.
+
+    Returns:
+        ts (np.ndarray): tiempos. Clase: numpy.ndarray.
+        ys (np.ndarray): soluciones en cada paso. Clase: numpy.ndarray.
+    """
     y = y0.copy()
     t = t0
     ts = [t]
@@ -210,7 +225,16 @@ def euler_implicito_R4(f, Jf, y0, t0, h, N):
 # PROBLEMA DE KEPLER
 
 
-def f_kepler(y):
+def f_kepler(y):i
+    """
+    Campo vectorial del problema de Kepler.
+
+    Args:
+        y (np.ndarray): vector [x, y, vx, vy].
+
+    Returns:
+        np.ndarray: derivadas [vx, vy, ax, ay].
+    """
     x, y_, vx, vy = y
     r = np.sqrt(x*x + y_*y_)
     return np.array([vx,
@@ -219,6 +243,9 @@ def f_kepler(y):
                      -y_/r**3])
 
 def Jf_kepler(y):
+    """
+    Jacobiano del campo vectorial del problema de Kepler.
+    """
     x, y_, vx, vy = y
     r = np.sqrt(x*x + y_*y_)
 
@@ -250,11 +277,29 @@ ts, ys = euler_implicito_R4(f_kepler, Jf_kepler, y0, t0, h, N)
 
 
 def energia(y):
+    """
+    Calcula la energía del sistema de Kepler.
+
+    Args:
+        y (np.ndarray): [x, y, vx, vy]
+
+    Returns:
+        float: energía total.
+    """    
     x, y_, vx, vy = y
     r = np.sqrt(x*x + y_*y_)
     return 0.5*(vx*vx + vy*vy) - 1/r
 
 def Lz(y):
+    """
+    Momento angular alrededor del eje z.
+
+    Args:
+        y (np.ndarray): [x, y, vx, vy]
+
+    Returns:
+        float: Lz.
+    """    
     x, y_, vx, vy = y
     return x*vy - y_*vx
 
@@ -269,3 +314,55 @@ err_L = np.max(np.abs(L - L0)/np.abs(L0))
 
 print("Variación relativa máxima de energía:", err_E)
 print("Variación relativa máxima de momento angular:", err_L)
+
+
+t0 = 0
+y0 = np.array([1.0, 0.0, 0.0, 1.0])
+h = 0.01
+T = 20*np.pi
+N = int((T - t0)/h)
+
+ts, ys = euler_implicito_R4(f_kepler, Jf_kepler, y0, t0, h, N)
+
+
+E = np.array([energia(y) for y in ys])
+L = np.array([Lz(y) for y in ys])
+
+E0 = E[0]
+L0 = L[0]
+
+err_E = np.max(np.abs(E - E0) / abs(E0))
+err_L = np.max(np.abs(L - L0) / abs(L0))
+
+print("Variación relativa máxima de energía:", err_E)
+print("Variación relativa máxima de momento angular:", err_L)
+
+
+# Trayectoria
+plt.figure(figsize=(6,6))
+plt.plot(ys[:,0], ys[:,1])
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Trayectoria orbital (x,y)")
+plt.axis("equal")
+plt.grid()
+plt.show()
+
+# Energía
+plt.figure()
+plt.plot(ts, E)
+plt.xlabel("t")
+plt.ylabel("E")
+plt.title("Energía vs tiempo")
+plt.grid()
+plt.show()
+
+# Momento angular
+plt.figure()
+plt.plot(ts, L)
+plt.xlabel("t")
+plt.ylabel("Lz")
+plt.title("Momento angular vs tiempo")
+plt.grid()
+plt.show()
+
